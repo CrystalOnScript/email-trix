@@ -10,7 +10,7 @@ const csvWriter = createCsvWriter({
   ]
 });
 
-let emailTags = (async function () {
+(async function () {
     let emailAttrs = [];
     const gotRules = await validatorRules.fetch();
     const tags = gotRules.getTagsForFormat('AMP4EMAIL');

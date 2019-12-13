@@ -29,7 +29,7 @@ const csvWriter = createCsvWriter({
       element.attrs.forEach(function(attribute){
         attributeList.push(attribute.name)
       })
-      let noAria = attributeList.filter((value) => !(value.startsWith('aria') || value.startsWith('[')));
+      let noAria = attributeList.filter((value) => !(value.startsWith('aria') || value.startsWith('[aria')));
       webAttrsOutput.push({
           'name': element.tagName,
           'attributes': noAria
@@ -41,7 +41,7 @@ const csvWriter = createCsvWriter({
         element.attrs.forEach(function(attribute) {
             attributeList.push(attribute.name)
         })
-        let noAria = attributeList.filter((value) => !(value.startsWith('aria') || value.startsWith('[')));
+        let noAria = attributeList.filter((value) => !(value.startsWith('aria') || value.startsWith('[aria')));
         emailAttrs.push({
             'name': element.tagName,
             'attributes': noAria

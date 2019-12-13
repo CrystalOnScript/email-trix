@@ -11,62 +11,57 @@ const csvWriter = createCsvWriter({
 });
 
 (async function () {
-    let emailAttrs = [];
-    let webAttrs = [];
-    let webAttrsOutput = [];
-    let listOfInvalid = [];
-    const gotRules = await validatorRules.fetch();
-    const tags = gotRules.getTagsForFormat('AMP4EMAIL');
-    let getEmailTags = tags.filter((value) => value.tagName.startsWith('AMP-'));
-    let ampTags = gotRules.getTagsForFormat('AMP');
-    let getAMPTags = ampTags.filter((value) => value.tagName.startsWith('AMP-'));
-    getEmailTags.forEach(function(element) {
-      let currentTag = getAMPTags.filter((value) => (value.tagName == element.tagName))
-      webAttrs.push(currentTag[0])
-    })
-    webAttrs.forEach(function(element){
+  // get all validator rules 
+  const gotRules = await validatorRules.fetch();
+
+  // get only AMP components for both email and websites
+  let emailTags = gotRules.getTagsForFormat('AMP4EMAIL').filter((value) => value.tagName.startsWith('AMP-'));
+  let ampTags = gotRules.getTagsForFormat('AMP').filter((value) => value.tagName.startsWith('AMP-'));
+
+  // only get AMP tags that are also email valid
+  let webAttrs = [];
+  emailTags.forEach(function(element) {
+    let currentTag = ampTags.filter((value) => (value.tagName == element.tagName))
+    webAttrs.push(currentTag[0])
+  })
+  // grab only the amp component name and the list of attributes
+  function makeObj(array, output) {
+    array.forEach(function(element){
       let attributeList = [];
-      element.attrs.forEach(function(attribute){
-        attributeList.push(attribute.name)
+      element.attrs.forEach(function(attribute) {
+        if (!attribute.name.startsWith(`aria`) || !attribute.name.startsWith(`[aria`))
+          attributeList.push(attribute.name);
       })
-      let noAria = attributeList.filter((value) => !(value.startsWith('aria') || value.startsWith('[aria')));
-      webAttrsOutput.push({
+      output.push({
           'name': element.tagName,
-          'attributes': noAria
-      });
+          'attributes': attributeList
+      });      
     })
-    // console.log(webAttrsOutput, "webAttrsOutput")
-    getEmailTags.forEach(function(element) {
-        let attributeList = [];
-        element.attrs.forEach(function(attribute) {
-            attributeList.push(attribute.name)
-        })
-        let noAria = attributeList.filter((value) => !(value.startsWith('aria') || value.startsWith('[aria')));
-        emailAttrs.push({
-            'name': element.tagName,
-            'attributes': noAria
-        });
+  }
+  let emailAttrs = [];
+  makeObj(emailTags, emailAttrs);
+  let webAttrsOutput = [];
+  makeObj(webAttrs, webAttrsOutput);
+
+  // compare list of attributes on each object. 
+  // place attributes that only appear on websites into array.
+  let listOfInvalid = [];
+  webAttrsOutput.forEach(function(element){
+    let indexNumber = webAttrsOutput.indexOf(element)
+    let emailItem = emailAttrs[indexNumber].attributes
+    let currentAttributes = [];
+    element.attributes.forEach(function(attribute) {
+      if (!emailItem.includes(attribute)) {
+        currentAttributes.push(attribute);
+      } 
     })
-    webAttrsOutput.forEach(function(element){
-      let indexNumber = webAttrsOutput.indexOf(element)
-      let emailItem = emailAttrs[indexNumber].attributes
-      let currentAttributes = [];
-      element.attributes.forEach(function(attribute) {
-        if (!emailItem.includes(attribute)) {
-          currentAttributes.push(attribute);
-        } 
-      })
-        listOfInvalid.push({
-          'name': element.name,
-          'attributes': currentAttributes
-      });
-    })
-    console.log("web", webAttrsOutput[0].attributes.length, "email",emailAttrs[0].attributes.length)
-    console.log(listOfInvalid, "listOfInvalid")
-    csvWriter
-    .writeRecords(listOfInvalid)
-    .then(()=> console.log('The CSV file was written successfully'));
+      listOfInvalid.push({
+        'name': element.name,
+        'attributes': currentAttributes
+    });
+  })
+  // write list of email component and invalid attributes to .csv file 
+  csvWriter
+  .writeRecords(listOfInvalid)
+  .then(()=> console.log('The CSV file was written successfully'));
 })();
-
-
-

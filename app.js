@@ -15,8 +15,10 @@ const csvWriter = createCsvWriter({
   const gotRules = await validatorRules.fetch();
 
   // get only AMP components for both email and websites
-  let emailTags = gotRules.getTagsForFormat('AMP4EMAIL').filter((value) => value.tagName.startsWith('AMP-'));
-  let ampTags = gotRules.getTagsForFormat('AMP').filter((value) => value.tagName.startsWith('AMP-'));
+  let emailTags = gotRules.getTagsForFormat('AMP4EMAIL')
+  // .filter((value) => value.tagName.startsWith('AMP-'));
+  let ampTags = gotRules.getTagsForFormat('AMP')
+  // .filter((value) => value.tagName.startsWith('AMP-'));
 
   // only get AMP tags that are also email valid
   let webAttrs = [];
@@ -55,10 +57,12 @@ const csvWriter = createCsvWriter({
         currentAttributes.push(attribute);
       } 
     })
+    if(currentAttributes.length > 0) {
       listOfInvalid.push({
         'name': element.name,
         'attributes': currentAttributes
-    });
+      });
+    }
   })
   // write list of email component and invalid attributes to .csv file 
   csvWriter

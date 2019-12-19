@@ -20,50 +20,34 @@ const csvWriter = createCsvWriter({
   let ampTags = gotRules.getTagsForFormat('AMP')
   // .filter((value) => value.tagName.startsWith('AMP-'));
 
-  // only get AMP tags that are also email valid
-  let webAttrs = [];
+  let webAttrs = new Map();
+  let emailAttrs = new Map();
   emailTags.forEach(function(element) {
     let currentTag = ampTags.filter((value) => (value.tagName == element.tagName))
-    webAttrs.push(currentTag[0])
-  })
-  // grab only the amp component name and the list of attributes
-  function makeObj(array, output) {
-    array.forEach(function(element){
-      let attributeList = [];
-      element.attrs.forEach(function(attribute) {
-        if (!attribute.name.startsWith(`aria`) || !attribute.name.startsWith(`[aria`))
-          attributeList.push(attribute.name);
-      })
-      output.push({
-          'name': element.tagName,
-          'attributes': attributeList
-      });      
+    let webTagAttribute = []
+    currentTag[0].attrs.forEach(function(attribute) {
+      webTagAttribute.push(attribute.name);
     })
-  }
-  let emailAttrs = [];
-  makeObj(emailTags, emailAttrs);
-  let webAttrsOutput = [];
-  makeObj(webAttrs, webAttrsOutput);
+    let emailTagAttribute = []
+    element.attrs.forEach(function(attribute) {
+      emailTagAttribute.push(attribute.name);
+    })
+    webAttrs.set(currentTag[0].tagName, webTagAttribute);
+    emailAttrs.set(element.tagName, emailTagAttribute)
+  })
 
-  // compare list of attributes on each object. 
-  // place attributes that only appear on websites into array.
-  let listOfInvalid = [];
-  webAttrsOutput.forEach(function(element){
-    let indexNumber = webAttrsOutput.indexOf(element)
-    let emailItem = emailAttrs[indexNumber].attributes
-    let currentAttributes = [];
-    element.attributes.forEach(function(attribute) {
-      if (!emailItem.includes(attribute)) {
-        currentAttributes.push(attribute);
-      } 
-    })
-    if(currentAttributes.length > 0) {
-      listOfInvalid.push({
-        'name': element.name,
-        'attributes': currentAttributes
-      });
-    }
-  })
+let listOfInvalid = [];
+emailAttrs.forEach(function(values, key) {
+  webList = webAttrs.get(key);
+  let filteredAttributes = webList.filter((word) => !values.includes(word));
+  if(filteredAttributes.length > 0) {
+    listOfInvalid.push({
+      'name': key,
+      'attributes': filteredAttributes
+    });
+  }
+
+})
   // write list of email component and invalid attributes to .csv file 
   csvWriter
   .writeRecords(listOfInvalid)

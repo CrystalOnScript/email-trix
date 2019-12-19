@@ -13,41 +13,27 @@ const csvWriter = createCsvWriter({
 (async function () {
   // get all validator rules 
   const gotRules = await validatorRules.fetch();
-
-  // get only AMP components for both email and websites
+  
   let emailTags = gotRules.getTagsForFormat('AMP4EMAIL')
-  // .filter((value) => value.tagName.startsWith('AMP-'));
   let ampTags = gotRules.getTagsForFormat('AMP')
-  // .filter((value) => value.tagName.startsWith('AMP-'));
 
-  let webAttrs = new Map();
-  let emailAttrs = new Map();
-  emailTags.forEach(function(element) {
-    let currentTag = ampTags.filter((value) => (value.tagName == element.tagName))
-    let webTagAttribute = []
-    currentTag[0].attrs.forEach(function(attribute) {
-      webTagAttribute.push(attribute.name);
+  let listOfInvalid = [];
+  emailTags.map(function(element) {
+    let found = ampTags.find((value) => (value.tagName == element.tagName));
+    webAttributes = found.attrs.map(function(attribute) {
+      return attribute.name
     })
-    let emailTagAttribute = []
-    element.attrs.forEach(function(attribute) {
-      emailTagAttribute.push(attribute.name);
+    emailAttributes = element.attrs.map(function(attribute) {
+      return attribute.name
     })
-    webAttrs.set(currentTag[0].tagName, webTagAttribute);
-    emailAttrs.set(element.tagName, emailTagAttribute)
-  })
-
-let listOfInvalid = [];
-emailAttrs.forEach(function(values, key) {
-  webList = webAttrs.get(key);
-  let filteredAttributes = webList.filter((word) => !values.includes(word));
-  if(filteredAttributes.length > 0) {
-    listOfInvalid.push({
-      'name': key,
-      'attributes': filteredAttributes
-    });
-  }
-
-})
+    emailAttributes = webAttributes.filter((word) => !emailAttributes.includes(word));
+    if(emailAttributes.length > 0) {
+      listOfInvalid.push({
+        'name': element.tagName,
+        'attributes': emailAttributes
+      });
+    }
+  });
   // write list of email component and invalid attributes to .csv file 
   csvWriter
   .writeRecords(listOfInvalid)

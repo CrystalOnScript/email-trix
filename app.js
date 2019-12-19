@@ -9,11 +9,13 @@ const csvWriter = createCsvWriter({
     {id: 'attributes', title: "Attributes"}
   ]
 });
-
-(async function () {
-  // get all validator rules 
+async function getAllValidatorRules() {
   const gotRules = await validatorRules.fetch();
-  
+  return gotRules;
+ };
+(async function () {
+  const gotRules = await getAllValidatorRules()
+
   let emailTags = gotRules.getTagsForFormat('AMP4EMAIL')
   let ampTags = gotRules.getTagsForFormat('AMP')
 
@@ -34,7 +36,6 @@ const csvWriter = createCsvWriter({
       });
     }
   });
-  // write list of email component and invalid attributes to .csv file 
   csvWriter
   .writeRecords(listOfInvalid)
   .then(()=> console.log('The CSV file was written successfully'));

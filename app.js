@@ -47,6 +47,7 @@ async function getBlackList() {
     path: 'blacklist.csv',
     header: [
       {id: 'name', title: 'Name'},
+      {id: 'mandatoryParent', title: 'Mandatory Parent'},
       {id: 'attributes', title: "Attributes"}
     ]
   });
@@ -65,7 +66,9 @@ async function getBlackList() {
         object.attrs.forEach(function(attribute) {
           if (attribute.hasOwnProperty('disabledBy')) {
             if(attribute.disabledBy.includes('amp4email')) {
+              console.log(object)
               printBlackList.push({'name': object.tagName,
+              'mandatoryParent': object.mandatoryParent,
               'attributes': attribute.name
               })
             }

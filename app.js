@@ -44,24 +44,40 @@ async function getWhiteList() {
 
 async function getBlackList() {
   const csvWriter = createCsvWriter({
-    path: 'accordion.csv',
+    path: 'blacklist.csv',
     header: [
-      {id: 'name', title: 'Name'}
+      {id: 'name', title: 'Name'},
+      {id: 'attributes', title: "Attributes"}
     ]
   });
   const gotRules = await getAllValidatorRules();
-  let ampTags = gotRules.getTagsForFormat('AMP');
-  let printAccordion = [];
-  ampTags.map(function(element) {
-    if (element.tagName == 'AMP-ACCORDION'){
-      console.log(element.attrs.length)
-      element.attrs.map(function(attribute) {
-          printAccordion.push({'name': attribute.name})
-      })
-    }
-  });
+  let emailTags = gotRules.getTagsForFormat('AMP4EMAIL');
+  emailTags = emailTags.map(tag => tag.tagName)
+  let tags = gotRules.raw.tags
+  let printBlackList = [];
+  emailTags = emailTags.map(function(element) {
+    return found = tags.filter((value) => (value.tagName == element))
+  })
+
+  emailTags.map(function(foundTags) {
+    foundTags.forEach(function(object) {
+      if (object.hasOwnProperty('attrs')){
+        object.attrs.forEach(function(attribute) {
+          if (attribute.hasOwnProperty('disabledBy')) {
+            if(attribute.disabledBy.includes('amp4email')) {
+              printBlackList.push({'name': object.tagName,
+              'attributes': attribute.name
+              })
+            }
+          }
+        })
+
+      }
+
+    })
+  })
   csvWriter
-  .writeRecords(printAccordion)
+  .writeRecords(printBlackList)
   .then(()=> console.log('The CSV file was written successfully'));
 };
 

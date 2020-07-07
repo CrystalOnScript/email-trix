@@ -20,6 +20,6 @@
     "@ampproject/toolbox-validator-rules": "^1.1.1",
     "csv-writer": "^1.5.0",
     "install": "^0.13.0",
-    "npm": "^6.13.3"
+    "npm": "^6.14.6"
   }
 }
